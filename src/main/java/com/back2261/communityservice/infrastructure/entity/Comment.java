@@ -1,6 +1,8 @@
 package com.back2261.communityservice.infrastructure.entity;
 
 import jakarta.persistence.*;
+
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
@@ -17,7 +19,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Comment {
+public class Comment implements Serializable {
     @Id
     private UUID commentId;
 
