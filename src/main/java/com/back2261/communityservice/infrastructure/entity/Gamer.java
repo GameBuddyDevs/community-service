@@ -29,17 +29,21 @@ public class Gamer implements UserDetails {
 
     private Integer age;
     private String country;
-    private String avatar;
+    private UUID avatar;
 
     @UpdateTimestamp
     private Date lastModifiedDate;
 
-    private Date lastOnlineDate;
-
     private String pwd;
     private String gender;
-    private Boolean isBlocked = false;
     private Integer coin;
+
+    @ManyToMany
+    @JoinTable(
+            name = "community_members_join",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "community_id"))
+    private Set<Community> joinedCommunities;
 
     @OneToMany(cascade = CascadeType.ALL)
     private Set<Community> ownedCommunities;

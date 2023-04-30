@@ -2,14 +2,8 @@ package com.back2261.communityservice.domain.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.back2261.communityservice.infrastructure.entity.Comment;
-import com.back2261.communityservice.infrastructure.entity.Community;
-import com.back2261.communityservice.infrastructure.entity.Gamer;
-import com.back2261.communityservice.infrastructure.entity.Post;
-import com.back2261.communityservice.infrastructure.repository.CommentRepository;
-import com.back2261.communityservice.infrastructure.repository.CommunityRepository;
-import com.back2261.communityservice.infrastructure.repository.GamerRepository;
-import com.back2261.communityservice.infrastructure.repository.PostRepository;
+import com.back2261.communityservice.infrastructure.entity.*;
+import com.back2261.communityservice.infrastructure.repository.*;
 import com.back2261.communityservice.interfaces.request.CommunityRequest;
 import com.back2261.communityservice.interfaces.request.CreateCommentRequest;
 import com.back2261.communityservice.interfaces.request.CreateCommunityRequest;
@@ -49,6 +43,9 @@ class DefaultCommunityServiceTest {
 
     @Mock
     private CommentRepository commentRepository;
+
+    @Mock
+    private AvatarsRepository avatarsRepository;
 
     @Mock
     private JwtService jwtService;
@@ -114,6 +111,7 @@ class DefaultCommunityServiceTest {
 
         Mockito.when(communityRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(community));
         Mockito.when(gamerRepository.findById(Mockito.any(String.class))).thenReturn(Optional.of(gamer));
+        Mockito.when(avatarsRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(new Avatars()));
 
         PostResponse result = defaultCommunityService.getCommunitiesPosts(communityRequest);
         assertEquals(2, result.getBody().getData().getPosts().size());
@@ -515,6 +513,7 @@ class DefaultCommunityServiceTest {
 
         Mockito.when(postRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(post));
         Mockito.when(gamerRepository.findById(Mockito.anyString())).thenReturn(Optional.of(gamer));
+        Mockito.when(avatarsRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(new Avatars()));
 
         CommentsResponse result = defaultCommunityService.getPostComments(id);
         assertEquals(2, result.getBody().getData().getComments().size());
@@ -651,13 +650,13 @@ class DefaultCommunityServiceTest {
         gamer.setEmail("test");
         gamer.setAge(15);
         gamer.setCountry("test");
-        gamer.setAvatar("71927b70-8a51-4844-a306-00313fec4f09");
+        gamer.setAvatar(UUID.randomUUID());
         gamer.setLastModifiedDate(new Date());
         gamer.setPwd("test");
         gamer.setGender("E");
         gamer.setCoin(0);
-        gamer.setIsBlocked(false);
         gamer.setOwnedCommunities(new HashSet<>());
+        gamer.setJoinedCommunities(new HashSet<>());
         return gamer;
     }
 }

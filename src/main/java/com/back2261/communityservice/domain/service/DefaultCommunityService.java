@@ -1,13 +1,7 @@
 package com.back2261.communityservice.domain.service;
 
-import com.back2261.communityservice.infrastructure.entity.Comment;
-import com.back2261.communityservice.infrastructure.entity.Community;
-import com.back2261.communityservice.infrastructure.entity.Gamer;
-import com.back2261.communityservice.infrastructure.entity.Post;
-import com.back2261.communityservice.infrastructure.repository.CommentRepository;
-import com.back2261.communityservice.infrastructure.repository.CommunityRepository;
-import com.back2261.communityservice.infrastructure.repository.GamerRepository;
-import com.back2261.communityservice.infrastructure.repository.PostRepository;
+import com.back2261.communityservice.infrastructure.entity.*;
+import com.back2261.communityservice.infrastructure.repository.*;
 import com.back2261.communityservice.interfaces.dto.*;
 import com.back2261.communityservice.interfaces.request.CommunityRequest;
 import com.back2261.communityservice.interfaces.request.CreateCommentRequest;
@@ -36,6 +30,7 @@ public class DefaultCommunityService implements CommunityService {
     private final GamerRepository gamerRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final AvatarsRepository avatarsRepository;
     private final JwtService jwtService;
 
     @Override
@@ -46,6 +41,20 @@ public class DefaultCommunityService implements CommunityService {
             CommunityDto communityDto = new CommunityDto();
             BeanUtils.copyProperties(community, communityDto);
             communityDto.setCommunityId(community.getCommunityId().toString());
+            Set<Gamer> members = community.getMembers();
+            List<GamerDto> gamerDtos = new ArrayList<>();
+            members.forEach(gamer -> {
+                GamerDto gamerDto = new GamerDto();
+                BeanUtils.copyProperties(gamer, gamerDto);
+                gamerDto.setAvatar(avatarsRepository
+                        .findById(gamer.getAvatar())
+                        .orElse(new Avatars())
+                        .getImage());
+                gamerDto.setIsOwner(
+                        gamer.getUserId().equals(community.getOwner().getUserId()));
+                gamerDtos.add(gamerDto);
+            });
+            communityDto.setMembers(gamerDtos);
             communityDtos.add(communityDto);
         });
         CommunityResponse communityResponse = new CommunityResponse();
@@ -74,7 +83,11 @@ public class DefaultCommunityService implements CommunityService {
                     .findById(post.getOwner())
                     .orElseThrow(() -> new BusinessException(TransactionCode.USER_NOT_FOUND));
             postDto.setUsername(gamer.getGamerUsername());
-            postDto.setAvatar(gamer.getAvatar());
+            String avatar = avatarsRepository
+                    .findById(gamer.getAvatar())
+                    .orElse(new Avatars())
+                    .getImage();
+            postDto.setAvatar(avatar);
             postDto.setCommentCount(post.getComments().size());
             postDtos.add(postDto);
         });
@@ -130,6 +143,8 @@ public class DefaultCommunityService implements CommunityService {
         community.getMembers().add(gamer);
         community.setOwner(gamer);
         communityRepository.save(community);
+        gamer.getOwnedCommunities().add(community);
+        gamer.getJoinedCommunities().add(community);
         gamerRepository.save(gamer);
 
         DefaultMessageResponse defaultMessageResponse = new DefaultMessageResponse();
@@ -229,6 +244,8 @@ public class DefaultCommunityService implements CommunityService {
         }
         community.getMembers().add(gamer);
         communityRepository.save(community);
+        gamer.getJoinedCommunities().add(community);
+        gamerRepository.save(gamer);
 
         DefaultMessageResponse defaultMessageResponse = new DefaultMessageResponse();
         DefaultMessageBody body = new DefaultMessageBody("Joined " + community.getName() + " successfully");
@@ -252,6 +269,8 @@ public class DefaultCommunityService implements CommunityService {
 
         community.getMembers().remove(gamer);
         communityRepository.save(community);
+        gamer.getJoinedCommunities().remove(community);
+        gamerRepository.save(gamer);
 
         DefaultMessageResponse defaultMessageResponse = new DefaultMessageResponse();
         DefaultMessageBody body = new DefaultMessageBody("Left " + community.getName() + " successfully");
@@ -275,7 +294,11 @@ public class DefaultCommunityService implements CommunityService {
                     .findById(comment.getOwner())
                     .orElseThrow(() -> new BusinessException(TransactionCode.USER_NOT_FOUND));
             commentDto.setUsername(gamer.getGamerUsername());
-            commentDto.setAvatar(gamer.getAvatar());
+            String avatar = avatarsRepository
+                    .findById(gamer.getAvatar())
+                    .orElse(new Avatars())
+                    .getImage();
+            commentDto.setAvatar(avatar);
             commentDtos.add(commentDto);
         });
 

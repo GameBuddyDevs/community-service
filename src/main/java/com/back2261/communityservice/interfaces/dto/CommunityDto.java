@@ -1,6 +1,7 @@
 package com.back2261.communityservice.interfaces.dto;
 
 import java.util.Date;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,4 +15,5 @@ public class CommunityDto {
     private String communityAvatar;
     private String wallpaper;
     private Date createdDate;
+    private List<GamerDto> members;
 }
