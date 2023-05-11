@@ -9,6 +9,7 @@ import com.back2261.communityservice.interfaces.request.CreateCommunityRequest;
 import com.back2261.communityservice.interfaces.request.PostRequest;
 import com.back2261.communityservice.interfaces.response.CommentsResponse;
 import com.back2261.communityservice.interfaces.response.CommunityResponse;
+import com.back2261.communityservice.interfaces.response.MemberResponse;
 import com.back2261.communityservice.interfaces.response.PostResponse;
 import io.github.GameBuddyDevs.backendlibrary.base.BaseBody;
 import io.github.GameBuddyDevs.backendlibrary.base.Status;
@@ -41,20 +42,7 @@ public class DefaultCommunityService implements CommunityService {
             CommunityDto communityDto = new CommunityDto();
             BeanUtils.copyProperties(community, communityDto);
             communityDto.setCommunityId(community.getCommunityId().toString());
-            Set<Gamer> members = community.getMembers();
-            List<GamerDto> gamerDtos = new ArrayList<>();
-            members.forEach(gamer -> {
-                GamerDto gamerDto = new GamerDto();
-                BeanUtils.copyProperties(gamer, gamerDto);
-                gamerDto.setAvatar(avatarsRepository
-                        .findById(gamer.getAvatar())
-                        .orElse(new Avatars())
-                        .getImage());
-                gamerDto.setIsOwner(
-                        gamer.getUserId().equals(community.getOwner().getUserId()));
-                gamerDtos.add(gamerDto);
-            });
-            communityDto.setMembers(gamerDtos);
+            communityDto.setMemberCount(community.getMembers().size());
             communityDtos.add(communityDto);
         });
         CommunityResponse communityResponse = new CommunityResponse();
@@ -66,11 +54,41 @@ public class DefaultCommunityService implements CommunityService {
     }
 
     @Override
-    public PostResponse getCommunitiesPosts(CommunityRequest communityRequest) {
-        String communityId = communityRequest.getCommunityId();
+    public MemberResponse getMembers(String communityId) {
         Community community = communityRepository
                 .findById(UUID.fromString(communityId))
                 .orElseThrow(() -> new BusinessException(TransactionCode.COMMUNITY_NOT_FOUND));
+
+        Set<Gamer> members = community.getMembers();
+        List<GamerDto> memberDtos = new ArrayList<>();
+        members.forEach(member -> {
+            GamerDto memberDto = new GamerDto();
+            BeanUtils.copyProperties(member, memberDto);
+            memberDto.setIsOwner(community.getOwner().equals(member));
+            memberDto.setAvatar(avatarsRepository
+                    .findById(member.getAvatar())
+                    .orElse(new Avatars())
+                    .getImage());
+            memberDtos.add(memberDto);
+        });
+        MemberResponse memberResponse = new MemberResponse();
+        MemberResponseBody body = new MemberResponseBody();
+        body.setMembers(memberDtos);
+        memberResponse.setBody(new BaseBody<>(body));
+        memberResponse.setStatus(new Status(TransactionCode.DEFAULT_100));
+        return memberResponse;
+    }
+
+    @Override
+    public PostResponse getCommunitiesPosts(String token, String communityId) {
+        Gamer gamer = extractGamer(token);
+        Community community = communityRepository
+                .findById(UUID.fromString(communityId))
+                .orElseThrow(() -> new BusinessException(TransactionCode.COMMUNITY_NOT_FOUND));
+
+        if (Boolean.FALSE.equals(community.getMembers().contains(gamer))) {
+            throw new BusinessException(TransactionCode.NOT_MEMBER);
+        }
 
         Set<Post> posts = community.getPosts();
         List<PostDto> postDtos = new ArrayList<>();
@@ -79,12 +97,12 @@ public class DefaultCommunityService implements CommunityService {
             BeanUtils.copyProperties(post, postDto);
 
             postDto.setPostId(post.getPostId().toString());
-            Gamer gamer = gamerRepository
+            Gamer postOwner = gamerRepository
                     .findById(post.getOwner())
                     .orElseThrow(() -> new BusinessException(TransactionCode.USER_NOT_FOUND));
-            postDto.setUsername(gamer.getGamerUsername());
+            postDto.setUsername(postOwner.getGamerUsername());
             String avatar = avatarsRepository
-                    .findById(gamer.getAvatar())
+                    .findById(postOwner.getAvatar())
                     .orElse(new Avatars())
                     .getImage();
             postDto.setAvatar(avatar);
@@ -97,6 +115,58 @@ public class DefaultCommunityService implements CommunityService {
         postResponse.setBody(new BaseBody<>(body));
         postResponse.setStatus(new Status(TransactionCode.DEFAULT_100));
         return postResponse;
+    }
+
+    @Override
+    public MemberResponse getPostLikes(String postId) {
+        Post post = postRepository
+                .findById(UUID.fromString(postId))
+                .orElseThrow(() -> new BusinessException(TransactionCode.POST_NOT_FOUND));
+
+        Set<Gamer> likes = post.getLikes();
+        List<GamerDto> likeDtos = new ArrayList<>();
+        likes.forEach(like -> {
+            GamerDto likeDto = new GamerDto();
+            BeanUtils.copyProperties(like, likeDto);
+            likeDto.setIsOwner(Objects.equals(post.getOwner(), like.getUserId()));
+            likeDto.setAvatar(avatarsRepository
+                    .findById(like.getAvatar())
+                    .orElse(new Avatars())
+                    .getImage());
+            likeDtos.add(likeDto);
+        });
+        MemberResponse memberResponse = new MemberResponse();
+        MemberResponseBody body = new MemberResponseBody();
+        body.setMembers(likeDtos);
+        memberResponse.setBody(new BaseBody<>(body));
+        memberResponse.setStatus(new Status(TransactionCode.DEFAULT_100));
+        return memberResponse;
+    }
+
+    @Override
+    public MemberResponse getCommentLikes(String commentId) {
+        Comment comment = commentRepository
+                .findById(UUID.fromString(commentId))
+                .orElseThrow(() -> new BusinessException(TransactionCode.COMMENT_NOT_FOUND));
+
+        Set<Gamer> likes = comment.getLikes();
+        List<GamerDto> likeDtos = new ArrayList<>();
+        likes.forEach(like -> {
+            GamerDto likeDto = new GamerDto();
+            BeanUtils.copyProperties(like, likeDto);
+            likeDto.setIsOwner(Objects.equals(comment.getOwner(), like.getUserId()));
+            likeDto.setAvatar(avatarsRepository
+                    .findById(like.getAvatar())
+                    .orElse(new Avatars())
+                    .getImage());
+            likeDtos.add(likeDto);
+        });
+        MemberResponse memberResponse = new MemberResponse();
+        MemberResponseBody body = new MemberResponseBody();
+        body.setMembers(likeDtos);
+        memberResponse.setBody(new BaseBody<>(body));
+        memberResponse.setStatus(new Status(TransactionCode.DEFAULT_100));
+        return memberResponse;
     }
 
     @Override

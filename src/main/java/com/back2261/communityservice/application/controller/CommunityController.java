@@ -7,6 +7,7 @@ import com.back2261.communityservice.interfaces.request.CreateCommunityRequest;
 import com.back2261.communityservice.interfaces.request.PostRequest;
 import com.back2261.communityservice.interfaces.response.CommentsResponse;
 import com.back2261.communityservice.interfaces.response.CommunityResponse;
+import com.back2261.communityservice.interfaces.response.MemberResponse;
 import com.back2261.communityservice.interfaces.response.PostResponse;
 import io.github.GameBuddyDevs.backendlibrary.interfaces.DefaultMessageResponse;
 import jakarta.validation.Valid;
@@ -31,9 +32,33 @@ public class CommunityController {
         return new ResponseEntity<>(communityService.getCommunities(), HttpStatus.OK);
     }
 
-    @GetMapping("/get/communities/posts")
-    public ResponseEntity<PostResponse> getCommunitiesPosts(@Valid @RequestBody CommunityRequest communityRequest) {
-        return new ResponseEntity<>(communityService.getCommunitiesPosts(communityRequest), HttpStatus.OK);
+    @GetMapping("/get/members/{communityId}")
+    public ResponseEntity<MemberResponse> getMembers(
+            @Valid @RequestHeader(AUTHORIZATION) @NotBlank(message = AUTH_MESSAGE) String token,
+            @Valid @PathVariable("communityId") String communityId) {
+        return new ResponseEntity<>(communityService.getMembers(communityId), HttpStatus.OK);
+    }
+
+    @GetMapping("/get/communities/posts/{communityId}")
+    public ResponseEntity<PostResponse> getCommunitiesPosts(
+            @Valid @RequestHeader(AUTHORIZATION) @NotBlank(message = AUTH_MESSAGE) String token,
+            @Valid @PathVariable("communityId") String communityId) {
+        return new ResponseEntity<>(
+                communityService.getCommunitiesPosts(token.substring(7), communityId), HttpStatus.OK);
+    }
+
+    @GetMapping("/get/post/likes/{postId}")
+    public ResponseEntity<MemberResponse> getPostLikes(
+            @Valid @RequestHeader(AUTHORIZATION) @NotBlank(message = AUTH_MESSAGE) String token,
+            @Valid @PathVariable("postId") String postId) {
+        return new ResponseEntity<>(communityService.getPostLikes(postId), HttpStatus.OK);
+    }
+
+    @GetMapping("/get/comment/likes/{commentId}")
+    public ResponseEntity<MemberResponse> getCommentLikes(
+            @Valid @RequestHeader(AUTHORIZATION) @NotBlank(message = AUTH_MESSAGE) String token,
+            @Valid @PathVariable("commentId") String commentId) {
+        return new ResponseEntity<>(communityService.getCommentLikes(commentId), HttpStatus.OK);
     }
 
     @PostMapping("/create/post")

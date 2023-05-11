@@ -7,5 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface GamerRepository extends JpaRepository<Gamer, String> {
+
     Optional<Gamer> findByEmail(String email);
 }

@@ -74,46 +74,68 @@ class DefaultCommunityServiceTest {
 
     @Test
     void testGetCommunitiesPosts_whenInvalidCommunityIdProvided_ReturnErrorCode131() {
-        CommunityRequest communityRequest = new CommunityRequest();
-        communityRequest.setCommunityId("6bd0b158-be7f-45cc-84a2-f0b320e576ed");
-
+        Mockito.when(jwtService.extractUsername(Mockito.any(String.class))).thenReturn("test");
+        Mockito.when(gamerRepository.findByEmail(Mockito.anyString())).thenReturn(Optional.of(getGamer()));
         Mockito.when(communityRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.empty());
 
-        BusinessException exception = assertThrows(
-                BusinessException.class, () -> defaultCommunityService.getCommunitiesPosts(communityRequest));
+        BusinessException exception =
+                assertThrows(BusinessException.class, () -> defaultCommunityService.getCommunitiesPosts(token, id));
         assertEquals(131, exception.getTransactionCode().getId());
     }
 
     @Test
     void testGetCommunitiesPosts_whenOwnerOfThePostIsEmpty_ReturnErrorCode103() {
-        CommunityRequest communityRequest = new CommunityRequest();
-        communityRequest.setCommunityId("6bd0b158-be7f-45cc-84a2-f0b320e576ed");
-        Community community = getCommunity();
-        community.getPosts().add(getPost());
-        community.getPosts().add(getPost());
-
-        Mockito.when(communityRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(community));
-        Mockito.when(gamerRepository.findById(Mockito.any(String.class))).thenReturn(Optional.empty());
-
-        BusinessException exception = assertThrows(
-                BusinessException.class, () -> defaultCommunityService.getCommunitiesPosts(communityRequest));
-        assertEquals(103, exception.getTransactionCode().getId());
-    }
-
-    @Test
-    void testGetCommunitiesPosts_whenValidCommunityIdProvided_ReturnListOfPostsInTheCommunity() {
-        CommunityRequest communityRequest = new CommunityRequest();
-        communityRequest.setCommunityId("6bd0b158-be7f-45cc-84a2-f0b320e576ed");
         Community community = getCommunity();
         community.getPosts().add(getPost());
         community.getPosts().add(getPost());
         Gamer gamer = getGamer();
+        community.getMembers().add(gamer);
 
+        Mockito.when(jwtService.extractUsername(Mockito.any(String.class))).thenReturn("test");
+        Mockito.when(gamerRepository.findByEmail(Mockito.anyString())).thenReturn(Optional.of(gamer));
         Mockito.when(communityRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(community));
-        Mockito.when(gamerRepository.findById(Mockito.any(String.class))).thenReturn(Optional.of(gamer));
+        Mockito.when(gamerRepository.findById(Mockito.any(String.class))).thenReturn(Optional.empty());
+
+        BusinessException exception =
+                assertThrows(BusinessException.class, () -> defaultCommunityService.getCommunitiesPosts(token, id));
+        assertEquals(103, exception.getTransactionCode().getId());
+    }
+
+    @Test
+    void testGetCommunitiesPosts_whenUserNotMember_ReturnErrorCode132() {
+        Community community = getCommunity();
+        community.getPosts().add(getPost());
+        community.getPosts().add(getPost());
+        Gamer gamer = getGamer();
+        Gamer owner = getGamer();
+
+        Mockito.when(jwtService.extractUsername(Mockito.any(String.class))).thenReturn("test");
+        Mockito.when(gamerRepository.findByEmail(Mockito.anyString())).thenReturn(Optional.of(gamer));
+        Mockito.when(communityRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(community));
+        Mockito.when(gamerRepository.findById(Mockito.any(String.class))).thenReturn(Optional.of(owner));
         Mockito.when(avatarsRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(new Avatars()));
 
-        PostResponse result = defaultCommunityService.getCommunitiesPosts(communityRequest);
+        BusinessException exception =
+                assertThrows(BusinessException.class, () -> defaultCommunityService.getCommunitiesPosts(token, id));
+        assertEquals(132, exception.getTransactionCode().getId());
+    }
+
+    @Test
+    void testGetCommunitiesPosts_whenValidCommunityIdProvided_ReturnListOfPostsInTheCommunity() {
+        Community community = getCommunity();
+        community.getPosts().add(getPost());
+        community.getPosts().add(getPost());
+        Gamer gamer = getGamer();
+        Gamer owner = getGamer();
+        community.getMembers().add(gamer);
+
+        Mockito.when(jwtService.extractUsername(Mockito.any(String.class))).thenReturn("test");
+        Mockito.when(gamerRepository.findByEmail(Mockito.anyString())).thenReturn(Optional.of(gamer));
+        Mockito.when(communityRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(community));
+        Mockito.when(gamerRepository.findById(Mockito.any(String.class))).thenReturn(Optional.of(owner));
+        Mockito.when(avatarsRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(new Avatars()));
+
+        PostResponse result = defaultCommunityService.getCommunitiesPosts(token, id);
         assertEquals(2, result.getBody().getData().getPosts().size());
         assertEquals("100", result.getStatus().getCode());
     }

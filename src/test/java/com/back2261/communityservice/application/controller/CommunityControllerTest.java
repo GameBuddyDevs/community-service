@@ -121,12 +121,12 @@ class CommunityControllerTest {
         postResponse.setBody(new BaseBody<>(body));
         postResponse.setStatus(new Status(TransactionCode.DEFAULT_100));
 
-        Mockito.when(defaultCommunityService.getCommunitiesPosts(Mockito.any(CommunityRequest.class)))
+        Mockito.when(defaultCommunityService.getCommunitiesPosts(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(postResponse);
 
-        var request = MockMvcRequestBuilders.get("/community/get/communities/posts")
+        var request = MockMvcRequestBuilders.get("/community/get/communities/posts/test")
                 .contentType("application/json")
-                .content(objectMapper.writeValueAsString(communityRequest));
+                .header("Authorization", "Bearer " + token);
         var response = mockMvc.perform(request)
                 .andDo(print())
                 .andExpect(status().isOk())
