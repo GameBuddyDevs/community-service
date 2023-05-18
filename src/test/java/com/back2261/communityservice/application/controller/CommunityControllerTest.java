@@ -12,6 +12,7 @@ import com.back2261.communityservice.interfaces.request.CreateCommunityRequest;
 import com.back2261.communityservice.interfaces.request.PostRequest;
 import com.back2261.communityservice.interfaces.response.CommentsResponse;
 import com.back2261.communityservice.interfaces.response.CommunityResponse;
+import com.back2261.communityservice.interfaces.response.MemberResponse;
 import com.back2261.communityservice.interfaces.response.PostResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.GameBuddyDevs.backendlibrary.base.BaseBody;
@@ -101,6 +102,36 @@ class CommunityControllerTest {
     }
 
     @Test
+    void testGetMembers_whenValidCommunityIdProvided_shouldReturnMembersOfTheCommunity() throws Exception {
+        MemberResponse memberResponse = new MemberResponse();
+        MemberResponseBody body = new MemberResponseBody();
+        List<GamerDto> members = new ArrayList<>();
+        GamerDto gamerDto = new GamerDto();
+        gamerDto.setAvatar("test");
+        gamerDto.setIsOwner(true);
+        gamerDto.setGamerUsername("test");
+        gamerDto.setUserId("test");
+        members.add(new GamerDto());
+        members.add(gamerDto);
+        body.setMembers(members);
+        memberResponse.setBody(new BaseBody<>(body));
+        Mockito.when(defaultCommunityService.getMembers(Mockito.anyString())).thenReturn(memberResponse);
+
+        var request = MockMvcRequestBuilders.get("/community/get/members/test")
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + token);
+        var response = mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+        String responseJson = response.getResponse().getContentAsString();
+
+        MemberResponse memberResponse1 = objectMapper.readValue(responseJson, MemberResponse.class);
+        assertEquals(200, response.getResponse().getStatus());
+        assertEquals(2, memberResponse1.getBody().getData().getMembers().size());
+    }
+
+    @Test
     void testGetCommunitiesPosts_whenValidCommunityIdProvided_shouldReturnCommunityPosts() throws Exception {
         PostResponse postResponse = new PostResponse();
         PostResponseBody body = new PostResponseBody();
@@ -124,7 +155,7 @@ class CommunityControllerTest {
         Mockito.when(defaultCommunityService.getCommunitiesPosts(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(postResponse);
 
-        var request = MockMvcRequestBuilders.get("/community/get/communities/posts/test")
+        var request = MockMvcRequestBuilders.get("/community/get/posts/test")
                 .contentType("application/json")
                 .header("Authorization", "Bearer " + token);
         var response = mockMvc.perform(request)
@@ -136,6 +167,69 @@ class CommunityControllerTest {
         PostResponse postResponse1 = objectMapper.readValue(responseJson, PostResponse.class);
         assertEquals(200, response.getResponse().getStatus());
         assertEquals(2, postResponse1.getBody().getData().getPosts().size());
+    }
+
+    @Test
+    void testGetPostLikes_whenValidPostIdProvided_shouldReturnLikedUsers() throws Exception {
+        MemberResponse memberResponse = new MemberResponse();
+        MemberResponseBody body = new MemberResponseBody();
+        List<GamerDto> members = new ArrayList<>();
+        GamerDto gamerDto = new GamerDto();
+        gamerDto.setAvatar("test");
+        gamerDto.setIsOwner(true);
+        gamerDto.setGamerUsername("test");
+        gamerDto.setUserId("test");
+        members.add(new GamerDto());
+        members.add(gamerDto);
+        body.setMembers(members);
+        memberResponse.setBody(new BaseBody<>(body));
+
+        Mockito.when(defaultCommunityService.getPostLikes(Mockito.anyString())).thenReturn(memberResponse);
+
+        var request = MockMvcRequestBuilders.get("/community/get/post/likes/test")
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + token);
+        var response = mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+        String responseJson = response.getResponse().getContentAsString();
+
+        MemberResponse memberResponse1 = objectMapper.readValue(responseJson, MemberResponse.class);
+        assertEquals(200, response.getResponse().getStatus());
+        assertEquals(2, memberResponse1.getBody().getData().getMembers().size());
+    }
+
+    @Test
+    void testGetCommentLikes_whenValidCommentIdProvided_shouldReturnLikedUsers() throws Exception {
+        MemberResponse memberResponse = new MemberResponse();
+        MemberResponseBody body = new MemberResponseBody();
+        List<GamerDto> members = new ArrayList<>();
+        GamerDto gamerDto = new GamerDto();
+        gamerDto.setAvatar("test");
+        gamerDto.setIsOwner(true);
+        gamerDto.setGamerUsername("test");
+        gamerDto.setUserId("test");
+        members.add(new GamerDto());
+        members.add(gamerDto);
+        body.setMembers(members);
+        memberResponse.setBody(new BaseBody<>(body));
+
+        Mockito.when(defaultCommunityService.getCommentLikes(Mockito.anyString()))
+                .thenReturn(memberResponse);
+
+        var request = MockMvcRequestBuilders.get("/community/get/comment/likes/test")
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + token);
+        var response = mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+        String responseJson = response.getResponse().getContentAsString();
+
+        MemberResponse memberResponse1 = objectMapper.readValue(responseJson, MemberResponse.class);
+        assertEquals(200, response.getResponse().getStatus());
+        assertEquals(2, memberResponse1.getBody().getData().getMembers().size());
     }
 
     @Test

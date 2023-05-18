@@ -13,6 +13,7 @@ import com.back2261.communityservice.interfaces.response.MemberResponse;
 import com.back2261.communityservice.interfaces.response.PostResponse;
 import io.github.GameBuddyDevs.backendlibrary.base.BaseBody;
 import io.github.GameBuddyDevs.backendlibrary.base.Status;
+import io.github.GameBuddyDevs.backendlibrary.enums.Role;
 import io.github.GameBuddyDevs.backendlibrary.enums.TransactionCode;
 import io.github.GameBuddyDevs.backendlibrary.exception.BusinessException;
 import io.github.GameBuddyDevs.backendlibrary.interfaces.DefaultMessageBody;
@@ -254,7 +255,8 @@ public class DefaultCommunityService implements CommunityService {
         Community community = communityRepository
                 .findById(UUID.fromString(communityId))
                 .orElseThrow(() -> new BusinessException(TransactionCode.COMMUNITY_NOT_FOUND));
-        if (Boolean.FALSE.equals(community.getOwner().equals(gamer))) {
+        if (Boolean.FALSE.equals(community.getOwner().equals(gamer))
+                && Boolean.FALSE.equals(Objects.equals(gamer.getRole(), Role.ADMIN))) {
             throw new BusinessException(TransactionCode.NOT_OWNER);
         }
         communityRepository.delete(community);
@@ -272,7 +274,8 @@ public class DefaultCommunityService implements CommunityService {
         Post post = postRepository
                 .findById(UUID.fromString(postId))
                 .orElseThrow(() -> new BusinessException(TransactionCode.POST_NOT_FOUND));
-        if (Boolean.FALSE.equals(post.getOwner().equals(gamer.getUserId()))) {
+        if (Boolean.FALSE.equals(post.getOwner().equals(gamer.getUserId()))
+                && Boolean.FALSE.equals(Objects.equals(gamer.getRole(), Role.ADMIN))) {
             throw new BusinessException(TransactionCode.NOT_OWNER);
         }
         postRepository.delete(post);
@@ -290,7 +293,8 @@ public class DefaultCommunityService implements CommunityService {
         Comment comment = commentRepository
                 .findById(UUID.fromString(commentId))
                 .orElseThrow(() -> new BusinessException(TransactionCode.COMMENT_NOT_FOUND));
-        if (Boolean.FALSE.equals(comment.getOwner().equals(gamer.getUserId()))) {
+        if (Boolean.FALSE.equals(comment.getOwner().equals(gamer.getUserId()))
+                && Boolean.FALSE.equals(Objects.equals(gamer.getRole(), Role.ADMIN))) {
             throw new BusinessException(TransactionCode.NOT_OWNER);
         }
         commentRepository.delete(comment);

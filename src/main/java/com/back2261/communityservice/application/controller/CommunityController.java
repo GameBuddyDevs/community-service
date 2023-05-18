@@ -39,7 +39,7 @@ public class CommunityController {
         return new ResponseEntity<>(communityService.getMembers(communityId), HttpStatus.OK);
     }
 
-    @GetMapping("/get/communities/posts/{communityId}")
+    @GetMapping("/get/posts/{communityId}")
     public ResponseEntity<PostResponse> getCommunitiesPosts(
             @Valid @RequestHeader(AUTHORIZATION) @NotBlank(message = AUTH_MESSAGE) String token,
             @Valid @PathVariable("communityId") String communityId) {
@@ -122,7 +122,9 @@ public class CommunityController {
     }
 
     @GetMapping("/get/post/comments/{postId}")
-    public ResponseEntity<CommentsResponse> getPostComments(@Valid @PathVariable String postId) {
+    public ResponseEntity<CommentsResponse> getPostComments(
+            @Valid @RequestHeader(AUTHORIZATION) @NotBlank(message = AUTH_MESSAGE) String token,
+            @Valid @PathVariable String postId) {
         return new ResponseEntity<>(communityService.getPostComments(postId), HttpStatus.OK);
     }
 

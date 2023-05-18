@@ -1,5 +1,6 @@
 package com.back2261.communityservice.infrastructure.entity;
 
+import io.github.GameBuddyDevs.backendlibrary.enums.Role;
 import jakarta.persistence.*;
 import java.util.*;
 import lombok.AllArgsConstructor;
@@ -38,6 +39,9 @@ public class Gamer implements UserDetails {
     private String gender;
     private Integer coin;
     private Boolean isBlocked;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     @ManyToMany
     @JoinTable(
