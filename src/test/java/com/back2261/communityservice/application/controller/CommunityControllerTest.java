@@ -233,6 +233,44 @@ class CommunityControllerTest {
     }
 
     @Test
+    void testGetJoinedCommunitiesPosts_whenValidTokenProvided_shouldReturnSuccessMessage() throws Exception {
+        PostResponse postResponse = new PostResponse();
+        PostResponseBody body = new PostResponseBody();
+        List<PostDto> posts = new ArrayList<>();
+        PostDto postDto = new PostDto();
+        postDto.setPostId("test");
+        postDto.setAvatar("test");
+        postDto.setUsername("test");
+        postDto.setCommentCount(0);
+        postDto.setBody("test");
+        postDto.setPicture("test");
+        postDto.setUpdatedDate(new Date());
+        postDto.setTitle("test");
+        postDto.setLikeCount(0);
+        postDto.setCommunityName("test");
+        posts.add(new PostDto());
+        posts.add(postDto);
+        body.setPosts(posts);
+        postResponse.setBody(new BaseBody<>(body));
+        postResponse.setStatus(new Status(TransactionCode.DEFAULT_100));
+        Mockito.when(defaultCommunityService.getJoinedCommunitiesPosts(Mockito.anyString()))
+                .thenReturn(postResponse);
+
+        var request = MockMvcRequestBuilders.get("/community/get/joined/posts")
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + token);
+        var response = mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+        String responseJson = response.getResponse().getContentAsString();
+
+        PostResponse postResponse1 = objectMapper.readValue(responseJson, PostResponse.class);
+        assertEquals(200, response.getResponse().getStatus());
+        assertEquals(2, postResponse1.getBody().getData().getPosts().size());
+    }
+
+    @Test
     void testCreatePost_whenValidUserAndCommunityProvided_shouldReturnSuccessMessage() throws Exception {
         PostRequest postRequest = new PostRequest();
         postRequest.setPicture("test");

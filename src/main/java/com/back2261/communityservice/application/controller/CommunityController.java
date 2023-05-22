@@ -5,10 +5,7 @@ import com.back2261.communityservice.interfaces.request.CommunityRequest;
 import com.back2261.communityservice.interfaces.request.CreateCommentRequest;
 import com.back2261.communityservice.interfaces.request.CreateCommunityRequest;
 import com.back2261.communityservice.interfaces.request.PostRequest;
-import com.back2261.communityservice.interfaces.response.CommentsResponse;
-import com.back2261.communityservice.interfaces.response.CommunityResponse;
-import com.back2261.communityservice.interfaces.response.MemberResponse;
-import com.back2261.communityservice.interfaces.response.PostResponse;
+import com.back2261.communityservice.interfaces.response.*;
 import io.github.GameBuddyDevs.backendlibrary.interfaces.DefaultMessageResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -59,6 +56,12 @@ public class CommunityController {
             @Valid @RequestHeader(AUTHORIZATION) @NotBlank(message = AUTH_MESSAGE) String token,
             @Valid @PathVariable("commentId") String commentId) {
         return new ResponseEntity<>(communityService.getCommentLikes(commentId), HttpStatus.OK);
+    }
+
+    @GetMapping("/get/joined/posts")
+    public ResponseEntity<PostResponse> getJoinedCommunitiesPosts(
+            @Valid @RequestHeader(AUTHORIZATION) @NotBlank(message = AUTH_MESSAGE) String token) {
+        return new ResponseEntity<>(communityService.getJoinedCommunitiesPosts(token.substring(7)), HttpStatus.OK);
     }
 
     @PostMapping("/create/post")

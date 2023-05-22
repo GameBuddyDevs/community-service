@@ -10,6 +10,7 @@ import com.back2261.communityservice.interfaces.request.CreateCommunityRequest;
 import com.back2261.communityservice.interfaces.request.PostRequest;
 import com.back2261.communityservice.interfaces.response.CommentsResponse;
 import com.back2261.communityservice.interfaces.response.CommunityResponse;
+import com.back2261.communityservice.interfaces.response.MemberResponse;
 import com.back2261.communityservice.interfaces.response.PostResponse;
 import io.github.GameBuddyDevs.backendlibrary.exception.BusinessException;
 import io.github.GameBuddyDevs.backendlibrary.interfaces.DefaultMessageResponse;
@@ -73,6 +74,30 @@ class DefaultCommunityServiceTest {
     }
 
     @Test
+    void testGetMembers_whenInvalidCommunityIdProvided_ReturnErrorCode131() {
+        Mockito.when(communityRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.empty());
+
+        BusinessException exception =
+                assertThrows(BusinessException.class, () -> defaultCommunityService.getMembers(id));
+        assertEquals(131, exception.getTransactionCode().getId());
+    }
+
+    @Test
+    void testGetMembers_whenCalledValid_ReturnListOfUsers() {
+        Community community = getCommunity();
+        Set<Gamer> members = new HashSet<>();
+        members.add(getGamer());
+        members.add(getGamer());
+        community.setMembers(members);
+
+        Mockito.when(communityRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(community));
+
+        MemberResponse result = defaultCommunityService.getMembers(id);
+        assertEquals(2, result.getBody().getData().getMembers().size());
+        assertEquals("100", result.getStatus().getCode());
+    }
+
+    @Test
     void testGetCommunitiesPosts_whenInvalidCommunityIdProvided_ReturnErrorCode131() {
         Mockito.when(jwtService.extractUsername(Mockito.any(String.class))).thenReturn("test");
         Mockito.when(gamerRepository.findByEmail(Mockito.anyString())).thenReturn(Optional.of(getGamer()));
@@ -102,7 +127,7 @@ class DefaultCommunityServiceTest {
     }
 
     @Test
-    void testGetCommunitiesPosts_whenUserNotMember_ReturnErrorCode132() {
+    void testGetCommunitiesPosts_whenUserNotMember_ReturnEmptyList() {
         Community community = getCommunity();
         community.getPosts().add(getPost());
         community.getPosts().add(getPost());
@@ -115,9 +140,9 @@ class DefaultCommunityServiceTest {
         Mockito.when(gamerRepository.findById(Mockito.any(String.class))).thenReturn(Optional.of(owner));
         Mockito.when(avatarsRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(new Avatars()));
 
-        BusinessException exception =
-                assertThrows(BusinessException.class, () -> defaultCommunityService.getCommunitiesPosts(token, id));
-        assertEquals(132, exception.getTransactionCode().getId());
+        PostResponse result = defaultCommunityService.getCommunitiesPosts(token, id);
+        assertEquals(0, result.getBody().getData().getPosts().size());
+        assertEquals("100", result.getStatus().getCode());
     }
 
     @Test
@@ -138,6 +163,53 @@ class DefaultCommunityServiceTest {
         PostResponse result = defaultCommunityService.getCommunitiesPosts(token, id);
         assertEquals(2, result.getBody().getData().getPosts().size());
         assertEquals("100", result.getStatus().getCode());
+    }
+
+    @Test
+    void testGetPostLikes_whenInvalidPostIdProvided_ReturnErrorCode133() {
+        Mockito.when(postRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.empty());
+
+        BusinessException exception =
+                assertThrows(BusinessException.class, () -> defaultCommunityService.getPostLikes(id));
+        assertEquals(133, exception.getTransactionCode().getId());
+    }
+
+    @Test
+    void testGetPostLikes_whenCalledValid_ReturnListOfLikedUsers() {
+        Post post = getPost();
+        Set<Gamer> likes = new HashSet<>();
+        likes.add(getGamer());
+        likes.add(getGamer());
+        post.setLikes(likes);
+
+        Mockito.when(postRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(post));
+
+        MemberResponse result = defaultCommunityService.getPostLikes(id);
+        assertEquals(2, result.getBody().getData().getMembers().size());
+        assertEquals("100", result.getStatus().getCode());
+    }
+
+    @Test
+    void testGetCommentLikes_whenInvalidCommentIdProvided_ReturnErrorCode135() {
+        Mockito.when(commentRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.empty());
+
+        BusinessException exception =
+                assertThrows(BusinessException.class, () -> defaultCommunityService.getCommentLikes(id));
+        assertEquals(135, exception.getTransactionCode().getId());
+    }
+
+    @Test
+    void testGetCommentLikes_whenCalledValid_ReturnListOfLikedUsers() {
+        Comment comment = getComment();
+        Set<Gamer> likes = new HashSet<>();
+        likes.add(getGamer());
+        likes.add(getGamer());
+        comment.setLikes(likes);
+
+        Mockito.when(commentRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(comment));
+
+        MemberResponse result = defaultCommunityService.getCommentLikes(id);
+        assertEquals(2, result.getBody().getData().getMembers().size());
     }
 
     @Test
@@ -382,12 +454,13 @@ class DefaultCommunityServiceTest {
     void testDeleteComment_whenValid_ReturnSuccess() {
         Comment comment = getComment();
         Gamer gamer = getGamer();
+        comment.setOwner(gamer.getUserId());
 
         Mockito.when(jwtService.extractUsername(Mockito.anyString())).thenReturn(gamer.getEmail());
         Mockito.when(gamerRepository.findByEmail(Mockito.anyString())).thenReturn(Optional.of(gamer));
         Mockito.when(commentRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(comment));
 
-        DefaultMessageResponse result = defaultCommunityService.deleteComment(token, id);
+        DefaultMessageResponse result = defaultCommunityService.deleteComment(token, gamer.getUserId());
         assertEquals("100", result.getStatus().getCode());
     }
 
@@ -624,6 +697,30 @@ class DefaultCommunityServiceTest {
         assertEquals("100", result.getStatus().getCode());
     }
 
+    @Test
+    void testGetJoinedCommunitiesPosts_whenValid_ReturnPosts() {
+        Gamer gamer = getGamer();
+        Set<Community> communities = new HashSet<>();
+        Community community = getCommunity();
+        community.getMembers().add(gamer);
+        Community community2 = getCommunity();
+        community2.getMembers().add(gamer);
+        communities.add(community);
+        communities.add(community2);
+        gamer.setJoinedCommunities(communities);
+        Post post = getPost();
+        post.setCommunity(community);
+        community.getPosts().add(post);
+        Mockito.when(jwtService.extractUsername(Mockito.anyString())).thenReturn(gamer.getEmail());
+        Mockito.when(gamerRepository.findByEmail(Mockito.anyString())).thenReturn(Optional.of(gamer));
+        Mockito.when(gamerRepository.findById(Mockito.anyString())).thenReturn(Optional.of(gamer));
+        Mockito.when(avatarsRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(new Avatars()));
+
+        PostResponse result = defaultCommunityService.getJoinedCommunitiesPosts(token);
+        assertEquals(1, result.getBody().getData().getPosts().size());
+        assertEquals("100", result.getStatus().getCode());
+    }
+
     private Community getCommunity() {
         Community community = new Community();
         community.setCommunityId(UUID.randomUUID());
@@ -649,6 +746,7 @@ class DefaultCommunityServiceTest {
         post.setTitle("test");
         post.setOwner("test");
         post.setPicture("test");
+        post.setCommunity(new Community());
         post.setUpdatedDate(new Date());
         return post;
     }
@@ -667,7 +765,7 @@ class DefaultCommunityServiceTest {
 
     private Gamer getGamer() {
         Gamer gamer = new Gamer();
-        gamer.setUserId("test");
+        gamer.setUserId(UUID.randomUUID().toString());
         gamer.setGamerUsername("test");
         gamer.setEmail("test");
         gamer.setAge(15);

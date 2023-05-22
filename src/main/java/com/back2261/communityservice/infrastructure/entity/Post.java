@@ -35,6 +35,10 @@ public class Post implements Serializable {
 
     private Integer likeCount = 0;
 
+    @ManyToOne
+    @JoinColumn(name = "community_id")
+    private Community community;
+
     @ManyToMany
     @JoinTable(
             name = "post_comments_join",

@@ -29,11 +29,7 @@ public class Community implements Serializable {
     @CreationTimestamp
     private Date createdDate;
 
-    @ManyToMany
-    @JoinTable(
-            name = "community_posts_join",
-            joinColumns = @JoinColumn(name = "community_id"),
-            inverseJoinColumns = @JoinColumn(name = "post_id"))
+    @OneToMany(mappedBy = "community")
     private Set<Post> posts;
 
     @ManyToMany

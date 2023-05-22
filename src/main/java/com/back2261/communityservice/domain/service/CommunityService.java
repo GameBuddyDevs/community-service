@@ -4,10 +4,7 @@ import com.back2261.communityservice.interfaces.request.CommunityRequest;
 import com.back2261.communityservice.interfaces.request.CreateCommentRequest;
 import com.back2261.communityservice.interfaces.request.CreateCommunityRequest;
 import com.back2261.communityservice.interfaces.request.PostRequest;
-import com.back2261.communityservice.interfaces.response.CommentsResponse;
-import com.back2261.communityservice.interfaces.response.CommunityResponse;
-import com.back2261.communityservice.interfaces.response.MemberResponse;
-import com.back2261.communityservice.interfaces.response.PostResponse;
+import com.back2261.communityservice.interfaces.response.*;
 import io.github.GameBuddyDevs.backendlibrary.interfaces.DefaultMessageResponse;
 
 public interface CommunityService {
@@ -21,6 +18,8 @@ public interface CommunityService {
     MemberResponse getPostLikes(String postId);
 
     MemberResponse getCommentLikes(String commentId);
+
+    PostResponse getJoinedCommunitiesPosts(String token);
 
     DefaultMessageResponse createPost(String token, PostRequest postRequest);
 

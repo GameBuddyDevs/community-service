@@ -15,4 +15,5 @@ public class CommunityDto {
     private String wallpaper;
     private Date createdDate;
     private Integer memberCount;
+    private Integer postCount;
 }

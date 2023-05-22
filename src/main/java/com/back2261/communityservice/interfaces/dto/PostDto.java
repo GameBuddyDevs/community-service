@@ -11,6 +11,7 @@ public class PostDto {
     private String postId;
     private String username;
     private String avatar;
+    private String communityName;
     private String title;
     private String body;
     private String picture;
