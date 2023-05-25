@@ -9,7 +9,7 @@ import io.github.GameBuddyDevs.backendlibrary.interfaces.DefaultMessageResponse;
 
 public interface CommunityService {
 
-    CommunityResponse getCommunities();
+    CommunityResponse getCommunities(String token);
 
     MemberResponse getMembers(String communityId);
 

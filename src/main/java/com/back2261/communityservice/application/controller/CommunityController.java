@@ -25,8 +25,9 @@ public class CommunityController {
     private static final String AUTH_MESSAGE = "Authorization field cannot be empty";
 
     @GetMapping("/get/communities")
-    public ResponseEntity<CommunityResponse> getCommunities() {
-        return new ResponseEntity<>(communityService.getCommunities(), HttpStatus.OK);
+    public ResponseEntity<CommunityResponse> getCommunities(
+            @Valid @RequestHeader(AUTHORIZATION) @NotBlank(message = AUTH_MESSAGE) String token) {
+        return new ResponseEntity<>(communityService.getCommunities(token.substring(7)), HttpStatus.OK);
     }
 
     @GetMapping("/get/members/{communityId}")

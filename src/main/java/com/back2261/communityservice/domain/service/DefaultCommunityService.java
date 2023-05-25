@@ -36,7 +36,8 @@ public class DefaultCommunityService implements CommunityService {
     private final JwtService jwtService;
 
     @Override
-    public CommunityResponse getCommunities() {
+    public CommunityResponse getCommunities(String token) {
+        Gamer gamer = extractGamer(token);
         List<Community> communities = communityRepository.findAll();
         List<CommunityDto> communityDtos = new ArrayList<>();
         communities.forEach(community -> {
@@ -45,6 +46,7 @@ public class DefaultCommunityService implements CommunityService {
             communityDto.setCommunityId(community.getCommunityId().toString());
             communityDto.setMemberCount(community.getMembers().size());
             communityDto.setPostCount(community.getPosts().size());
+            communityDto.setIsJoined(community.getMembers().contains(gamer));
             communityDtos.add(communityDto);
         });
         CommunityResponse communityResponse = new CommunityResponse();

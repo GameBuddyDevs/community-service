@@ -16,4 +16,5 @@ public class CommunityDto {
     private Date createdDate;
     private Integer memberCount;
     private Integer postCount;
+    private Boolean isJoined;
 }

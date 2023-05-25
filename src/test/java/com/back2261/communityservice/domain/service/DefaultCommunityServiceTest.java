@@ -66,9 +66,11 @@ class DefaultCommunityServiceTest {
         communities.add(getCommunity());
         communities.add(getCommunity());
 
+        Mockito.when(jwtService.extractUsername(Mockito.any(String.class))).thenReturn("test");
+        Mockito.when(gamerRepository.findByEmail(Mockito.anyString())).thenReturn(Optional.of(getGamer()));
         Mockito.when(communityRepository.findAll()).thenReturn(communities);
 
-        CommunityResponse result = defaultCommunityService.getCommunities();
+        CommunityResponse result = defaultCommunityService.getCommunities(token);
         assertEquals(2, result.getBody().getData().getCommunities().size());
         assertEquals("100", result.getStatus().getCode());
     }
