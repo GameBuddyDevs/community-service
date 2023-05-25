@@ -95,7 +95,7 @@ public class DefaultCommunityService implements CommunityService {
         List<PostDto> postDtos = new ArrayList<>();
         if (Boolean.TRUE.equals(community.getMembers().contains(gamer))) {
             Set<Post> posts = community.getPosts();
-            mapPosts(new ArrayList<>(posts), postDtos);
+            mapPosts(new ArrayList<>(posts), postDtos, gamer);
         }
 
         body.setPosts(postDtos);
@@ -148,7 +148,7 @@ public class DefaultCommunityService implements CommunityService {
             joinedCommunitiesPosts.addAll(posts);
         });
         List<PostDto> postDtos = new ArrayList<>();
-        mapPosts(joinedCommunitiesPosts, postDtos);
+        mapPosts(joinedCommunitiesPosts, postDtos, gamer);
         postDtos.sort(Comparator.comparing(PostDto::getUpdatedDate).reversed());
 
         PostResponse postResponse = new PostResponse();
@@ -423,7 +423,7 @@ public class DefaultCommunityService implements CommunityService {
         return gamerOptional.get();
     }
 
-    private void mapPosts(List<Post> posts, List<PostDto> postDtos) {
+    private void mapPosts(List<Post> posts, List<PostDto> postDtos, Gamer gamer) {
         posts.forEach(post -> {
             PostDto postDto = new PostDto();
             BeanUtils.copyProperties(post, postDto);
@@ -440,6 +440,7 @@ public class DefaultCommunityService implements CommunityService {
                     .getImage();
             postDto.setAvatar(avatar);
             postDto.setCommentCount(post.getComments().size());
+            postDto.setIsLiked(post.getLikes().contains(gamer));
             postDtos.add(postDto);
         });
     }

@@ -18,4 +18,5 @@ public class PostDto {
     private Date updatedDate;
     private Integer likeCount;
     private Integer commentCount;
+    private Boolean isLiked;
 }
