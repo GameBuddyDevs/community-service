@@ -416,6 +416,42 @@ public class DefaultCommunityService implements CommunityService {
         return defaultMessageResponse;
     }
 
+    @Override
+    public DefaultMessageResponse unlikePost(String token, String postId) {
+        Gamer gamer = extractGamer(token);
+        Post post = postRepository
+                .findById(UUID.fromString(postId))
+                .orElseThrow(() -> new BusinessException(TransactionCode.POST_NOT_FOUND));
+
+        post.getLikes().remove(gamer);
+        post.setLikeCount(post.getLikes().size());
+        postRepository.save(post);
+
+        DefaultMessageResponse defaultMessageResponse = new DefaultMessageResponse();
+        DefaultMessageBody body = new DefaultMessageBody("Unliked post successfully");
+        defaultMessageResponse.setBody(new BaseBody<>(body));
+        defaultMessageResponse.setStatus(new Status(TransactionCode.DEFAULT_100));
+        return defaultMessageResponse;
+    }
+
+    @Override
+    public DefaultMessageResponse unlikeComment(String token, String commentId) {
+        Gamer gamer = extractGamer(token);
+        Comment comment = commentRepository
+                .findById(UUID.fromString(commentId))
+                .orElseThrow(() -> new BusinessException(TransactionCode.COMMENT_NOT_FOUND));
+
+        comment.getLikes().remove(gamer);
+        comment.setLikeCount(comment.getLikes().size());
+        commentRepository.save(comment);
+
+        DefaultMessageResponse defaultMessageResponse = new DefaultMessageResponse();
+        DefaultMessageBody body = new DefaultMessageBody("Unliked comment successfully");
+        defaultMessageResponse.setBody(new BaseBody<>(body));
+        defaultMessageResponse.setStatus(new Status(TransactionCode.DEFAULT_100));
+        return defaultMessageResponse;
+    }
+
     private Gamer extractGamer(String token) {
         String email = jwtService.extractUsername(token);
         Optional<Gamer> gamerOptional = gamerRepository.findByEmail(email);

@@ -42,4 +42,8 @@ public interface CommunityService {
     DefaultMessageResponse likePost(String token, String postId);
 
     DefaultMessageResponse likeComment(String token, String commentId);
+
+    DefaultMessageResponse unlikePost(String token, String postId);
+
+    DefaultMessageResponse unlikeComment(String token, String commentId);
 }

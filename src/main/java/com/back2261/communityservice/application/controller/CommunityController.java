@@ -145,4 +145,18 @@ public class CommunityController {
             @Valid @PathVariable String commentId) {
         return new ResponseEntity<>(communityService.likeComment(token.substring(7), commentId), HttpStatus.OK);
     }
+
+    @PostMapping("/unlike/post/{postId}")
+    public ResponseEntity<DefaultMessageResponse> unlikePost(
+            @Valid @RequestHeader(AUTHORIZATION) @NotBlank(message = AUTH_MESSAGE) String token,
+            @Valid @PathVariable String postId) {
+        return new ResponseEntity<>(communityService.unlikePost(token.substring(7), postId), HttpStatus.OK);
+    }
+
+    @PostMapping("/unlike/comment/{commentId}")
+    public ResponseEntity<DefaultMessageResponse> unlikeComment(
+            @Valid @RequestHeader(AUTHORIZATION) @NotBlank(message = AUTH_MESSAGE) String token,
+            @Valid @PathVariable String commentId) {
+        return new ResponseEntity<>(communityService.unlikeComment(token.substring(7), commentId), HttpStatus.OK);
+    }
 }
