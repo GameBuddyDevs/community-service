@@ -229,3 +229,7 @@ To containerize the GameBuddy Community Service using Docker, follow the steps b
 
  This will start the GameBuddy Community Service container, and it will be accessible at http://localhost:4567.
 
+ 
+## LICENSE
+This project is licensed under the MIT License.
+
